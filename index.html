@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bài Giảng: Cảm Ứng Ở Sinh Vật</title>
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/antd/5.12.5/reset.min.css" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dayjs/1.11.10/dayjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/antd/5.12.5/antd.min.js"></script>
+
+  <style>
+    body {
+      background-color: #f0f2f5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .container {
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    /* Tiêu đề phân cấp */
+    .main-header {
+      font-size: 52px;
+      font-weight: 900;
+      color: #cf1322;
+      text-align: center;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .sub-header {
+      font-size: 36px;
+      font-weight: bold;
+      color: #0050b3;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    /* Chỉnh chữ to toàn cục */
+    .large-text {
+      font-size: 28px;
+      line-height: 1.6;
+    }
+
+    .section-title {
+      font-size: 36px !important;
+      font-weight: bold;
+      color: #0050b3 !important;
+      margin-bottom: 20px;
+    }
+
+    /* Styles cho Game ghép thẻ */
+    .game-card {
+      cursor: pointer;
+      transition: 0.2s;
+      height: 100%;
+      border-radius: 12px;
+      font-size: 24px;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .game-card:hover {
+      transform: scale(1.02);
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-phenomenon {
+      background-color: #e6f7ff;
+      border: 2px solid #91caff;
+    }
+
+    .card-role {
+      background-color: #fffbe6;
+      border: 2px solid #ffe58f;
+    }
+
+    .selected-a {
+      border: 4px solid #1890ff;
+      background-color: #bae0ff;
+      font-weight: bold;
+    }
+
+    .selected-b {
+      border: 4px solid #faad14;
+      background-color: #ffec3d;
+      font-weight: bold;
+    }
+
+    .matched {
+      border: 4px solid #52c41a !important;
+      background-color: #f6ffed !important;
+      color: #237804;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+
+    /* Styles cho Hoạt động 1 */
+    .activity-img {
+      width: 100%;
+      height: 250px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      border: 1px solid #d9d9d9;
+    }
+
+    .answer-box {
+      font-size: 24px;
+      font-weight: bold;
+      color: #cf1322;
+      background: #fff1f0;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 15px;
+      text-align: center;
+      border: 2px dashed #ffa39e;
+    }
+
+    /* Chép bài & Đánh giá siêu to */
+    .note-box {
+      background: #fcffe6;
+      border-left: 10px solid #a0d911;
+      padding: 30px;
+      font-size: 36px;
+      line-height: 1.8;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .question-box {
+      background: #e6f4ff;
+      border-left: 10px solid #1677ff;
+      padding: 40px;
+      font-size: 40px;
+      line-height: 1.6;
+      border-radius: 12px;
+      text-align: center;
+      font-weight: bold;
+      color: #003eb3;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Tùy chỉnh Video */
+    .video-container {
+      width: 100%;
+      max-height: 500px;
+      border-radius: 8px;
+      outline: none;
+      background: #000;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+    const { Tabs, Card, Button, Row, Col, Typography, message, Tag } = antd;
+    const { Title, Paragraph } = Typography;
+
+    // --- DỮ LIỆU HOẠT ĐỘNG 1 (Đã bổ sung đầy đủ 8 ví dụ) ---
+    const hoatDong1Data = [
+      { id: 1, group: 'Đụng là Động', name: 'Cây xấu hổ', img: './asset/1.png', ans: '[Ngón tay chạm vào] ➡️ [Cây xấu hổ] ➡️ [Khép lá lại]' },
+      { id: 2, group: 'Đụng là Động', name: 'Người nháy mắt', img: './asset/2.png', ans: '[Hạt bụi bay vào mắt] ➡️ [Con người] ➡️ [Nháy mắt/Chảy nước mắt]' },
+      { id: 3, group: 'Phản xạ tự vệ', name: 'Cuốn chiếu', img: './asset/3.png', ans: '[Đũa chạm vào] ➡️ [Cuốn chiếu] ➡️ [Co rúm toàn thân]' },
+      { id: 4, group: 'Phản xạ tự vệ', name: 'Cây gọng vó', img: './asset/4.png', ans: '[Con ruồi đậu vào] ➡️ [Cây gọng vó] ➡️ [Cuốn lông kẹp chặt]' },
+      { id: 5, group: 'Tìm kiếm sự sống', name: 'Chậu cây hướng sáng', img: './asset/5.png', ans: '[Ánh sáng từ một phía] ➡️ [Ngọn cây] ➡️ [Mọc cong về hướng sáng]' },
+      { id: 6, group: 'Tìm kiếm sự sống', name: 'Chim én di cư', img: './asset/6.png', ans: '[Thời tiết chuyển lạnh] ➡️ [Đàn chim én] ➡️ [Bay về phương Nam]' },
+      { id: 7, group: 'Điều hòa nhiệt độ', name: 'Rễ cây đâm sâu', img: './asset/7.png', ans: '[Nguồn nước ngầm] ➡️ [Rễ cây] ➡️ [Mọc vươn tới]' },
+      { id: 8, group: 'Điều hòa nhiệt độ', name: 'Chó thè lưỡi', img: './asset/8.png', ans: '[Nhiệt độ môi trường cao] ➡️ [Con chó] ➡️ [Thè lưỡi, thở gấp]' }
+    ];
+
+    // --- DỮ LIỆU TRÒ CHƠI GHÉP THẺ (Đã bổ sung đủ 10 thẻ) ---
+    const initialCardsA = [
+      { id: 1, text: 'Ngọn cây luôn hướng mọc cong về phía có ánh sáng.' },
+      { id: 2, text: 'Người đổ mồ hôi đầm đìa khi trời nắng nóng.' },
+      { id: 3, text: 'Rễ cây đâm sâu và lan rộng về phía có mạch nước ngầm.' },
+      { id: 4, text: 'Chim én bay từng đàn di cư về phương Nam khi mùa đông đến.' },
+      { id: 5, text: 'Tắc kè hoa đổi màu da giống hệt màu cành cây/lá cây.' },
+      { id: 6, text: 'Cây nắp ấm, cây gọng vó cụp lông/nắp lại khi có ruồi đậu.' },
+      { id: 7, text: 'Con mèo xù lông, cong lưng gầm gừ khi thấy chó lạ.' },
+      { id: 8, text: 'Cây bàng, cây phượng rụng hết lá vào mùa đông.' },
+      { id: 9, text: 'Con chó thè lưỡi thở hổn hển khi trời nóng.' },
+      { id: 10, text: 'Rễ cây mọc uốn cong, né tránh đất chứa hóa chất độc hại.' }
+    ];
+
+    const initialCardsB = [
+      { id: 1, text: 'Giúp cây hấp thụ được nhiều ánh sáng để quang hợp.' },
+      { id: 2, text: 'Giúp tỏa nhiệt, làm mát cơ thể, tránh bị sốc nhiệt.' },
+      { id: 3, text: 'Giúp rễ cây tìm kiếm và hút đủ nước để sinh trưởng.' },
+      { id: 4, text: 'Tránh cái rét mùa đông, tìm kiếm môi trường ấm áp.' },
+      { id: 5, text: 'Ngụy trang để trốn tránh kẻ thù hoặc rình bắt con mồi.' },
+      { id: 6, text: 'Bắt và tiêu hóa côn trùng bổ sung dinh dưỡng cho cây.' },
+      { id: 7, text: 'Tự vệ, làm cơ thể trông to lớn hơn để đe dọa kẻ thù.' },
+      { id: 8, text: 'Giảm thoát hơi nước, giữ lại nhựa sống qua mùa đông.' },
+      { id: 9, text: 'Thoát hơi nước qua miệng làm mát cơ thể (chó không có tuyến mồ hôi).' },
+      { id: 10, text: 'Tránh xa các tác nhân gây hại, bảo vệ sự sống của rễ.' }
+    ];
+
+    const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5);
+
+    const App = () => {
+      const [showAnswers, setShowAnswers] = useState({});
+      const [cardsA, setCardsA] = useState([]);
+      const [cardsB, setCardsB] = useState([]);
+      const [selectedA, setSelectedA] = useState(null);
+      const [selectedB, setSelectedB] = useState(null);
+      const [matchedPairs, setMatchedPairs] = useState([]);
+
+      useEffect(() => {
+        setCardsA(shuffleArray(initialCardsA));
+        setCardsB(shuffleArray(initialCardsB));
+      }, []);
+
+      const toggleAnswer = (id) => {
+        setShowAnswers(prev => ({ ...prev, [id]: !prev[id] }));
+      };
+
+      const handleSelectA = (id) => {
+        if (matchedPairs.includes(id)) return;
+        setSelectedA(id);
+        if (selectedB !== null) checkMatch(id, selectedB);
+      };
+
+      const handleSelectB = (id) => {
+        if (matchedPairs.includes(id)) return;
+        setSelectedB(id);
+        if (selectedA !== null) checkMatch(selectedA, id);
+      };
+
+      const checkMatch = (idA, idB) => {
+        if (idA === idB) {
+          setMatchedPairs(prev => [...prev, idA]);
+          message.success({ content: 'Chính xác! Bạn ghép rất chuẩn.', style: { fontSize: '24px', marginTop: '10vh' } });
+        } else {
+          message.error({ content: 'Chưa đúng rồi, hãy suy nghĩ thêm nhé!', style: { fontSize: '24px', marginTop: '10vh' } });
+        }
+        setSelectedA(null);
+        setSelectedB(null);
+      };
+
+      const tabItems = [
+        {
+          key: '1',
+          label: <span style={{ fontSize: '24px', fontWeight: 'bold' }}>1. Khởi động</span>,
+          children: (
+            <div>
+              <Title level={2} className="section-title">Khoảnh khắc Sinh tồn</Title>
+              <Paragraph className="large-text">Cùng quan sát 2 video sau và trả lời: <b>Điểm chung của chú rùa và cây gọng vó là gì? Nếu rùa không rụt cổ, cây không cụp lá thì chuyện gì sẽ xảy ra?</b></Paragraph>
+              <Row gutter={30}>
+                <Col span={12}>
+                  <Card title={<span className="large-text" style={{ fontWeight: 'bold' }}>Video 1: Rùa rụt cổ</span>} bordered={true}>
+                    <video className="video-container" controls preload="auto">
+                      <source src="./video/1.mp4" type="video/mp4" />
+                      Trình duyệt của bạn không hỗ trợ thẻ video.
+                    </video>
+                  </Card>
+                </Col>
+                <Col span={12}>
+                  <Card title={<span className="large-text" style={{ fontWeight: 'bold' }}>Video 2: Cây gọng vó bắt mồi</span>} bordered={true}>
+                    <video className="video-container" controls preload="auto">
+                      <source src="./video/2.mp4" type="video/mp4" />
+                      Trình duyệt của bạn không hỗ trợ thẻ video.
+                    </video>
+                  </Card>
+                </Col>
+              </Row>
+            </div>
+          )
+        },
+        {
+          key: '2',
+          label: <span style={{ fontSize: '24px', fontWeight: 'bold' }}>2. Hình thành khái niệm</span>,
+          children: (
+            <div>
+              <Title level={2} className="section-title">Sơ đồ khối Sinh học</Title>
+              <Paragraph className="large-text">Nhiệm vụ: Chuyển hóa thông tin thành sơ đồ khối: <br /><Tag color="blue" style={{ fontSize: '28px', padding: '10px 15px', marginTop: '10px' }}>[TÁC NHÂN KÍCH THÍCH] ➡️ [SINH VẬT] ➡️ [PHẢN ỨNG]</Tag></Paragraph>
+              <Row gutter={[20, 20]}>
+                {hoatDong1Data.map(item => (
+                  <Col span={6} key={item.id}>
+                    <Card hoverable title={<span style={{ fontSize: '20px', fontWeight: 'bold', color: '#0958d9' }}>{item.group}</span>}>
+                      <img src={item.img} alt={item.name} className="activity-img" />
+                      <div style={{ textAlign: 'center' }}>
+                        <Title level={4}>{item.name}</Title>
+                        <Button type="primary" size="large" style={{ fontSize: '18px', height: 'auto', padding: '8px 16px' }} onClick={() => toggleAnswer(item.id)}>
+                          {showAnswers[item.id] ? 'Ẩn đáp án' : 'Xem đáp án'}
+                        </Button>
+                        {showAnswers[item.id] && (
+                          <div className="answer-box">
+                            {item.ans}
+                          </div>
+                        )}
+                      </div>
+                    </Card>
+                  </Col>
+                ))}
+              </Row>
+            </div>
+          )
+        },
+        {
+          key: '3',
+          label: <span style={{ fontSize: '24px', fontWeight: 'bold' }}>3. Trò chơi Ghép thẻ</span>,
+          children: (
+            <div>
+              <Title level={2} className="section-title">Trò chơi: Ghép Thẻ Sinh Tồn</Title>
+              <Paragraph className="large-text">Luật chơi: Bấm chọn 1 thẻ <b>Hiện tượng (Màu xanh)</b> sau đó chọn 1 thẻ <b>Vai trò (Màu vàng)</b> tương ứng. Nếu đúng thẻ sẽ sáng màu xanh lá!</Paragraph>
+
+              <Row gutter={40}>
+                {/* Cột A: Hiện tượng */}
+                <Col span={12}>
+                  <Title level={2} style={{ textAlign: 'center', color: '#0958d9' }}>THẺ HIỆN TƯỢNG</Title>
+                  <Row gutter={[16, 16]}>
+                    {cardsA.map(card => (
+                      <Col span={24} key={'A' + card.id}>
+                        <div
+                          className={`game-card card-phenomenon 
+                            ${selectedA === card.id ? 'selected-a' : ''} 
+                            ${matchedPairs.includes(card.id) ? 'matched' : ''}`}
+                          onClick={() => handleSelectA(card.id)}
+                        >
+                          {card.text}
+                        </div>
+                      </Col>
+                    ))}
+                  </Row>
+                </Col>
+
+                {/* Cột B: Vai trò */}
+                <Col span={12}>
+                  <Title level={2} style={{ textAlign: 'center', color: '#d48806' }}>THẺ VAI TRÒ</Title>
+                  <Row gutter={[16, 16]}>
+                    {cardsB.map(card => (
+                      <Col span={24} key={'B' + card.id}>
+                        <div
+                          className={`game-card card-role 
+                            ${selectedB === card.id ? 'selected-b' : ''} 
+                            ${matchedPairs.includes(card.id) ? 'matched' : ''}`}
+                          onClick={() => handleSelectB(card.id)}
+                        >
+                          {card.text}
+                        </div>
+                      </Col>
+                    ))}
+                  </Row>
+                </Col>
+              </Row>
+            </div>
+          )
+        },
+        {
+          key: '4',
+          label: <span style={{ fontSize: '24px', color: '#cf1322', fontWeight: 'bold' }}>✍️ CHÉP BÀI</span>,
+          children: (
+            <div>
+              <Title level={2} style={{ color: '#0050b3', borderBottom: '2px solid #0050b3', paddingBottom: '10px', marginBottom: '20px' }}>1. Khái quát về cảm ứng ở sinh vật</Title>
+              <Title level={3} className="section-title" style={{ color: '#cf1322' }}>📌 Nội Dung Ghi Vở</Title>
+              <div className="note-box">
+                <p><b>1. Khái niệm về cảm ứng ở sinh vật:</b></p>
+                <p>- Cảm ứng là khả năng tiếp nhận kích thích và phản ứng lại các kích thích từ môi trường (bên trong và bên ngoài) của sinh vật.</p>
+                <br />
+                <p><b>2. Vai trò cảm ứng ở sinh vật:</b></p>
+                <p>- Cảm ứng là đặc trưng cơ bản của cơ thể sống, giúp sinh vật thích nghi được với các tác nhân kích thích của môi trường để tồn tại và phát triển.</p>
+              </div>
+            </div>
+          )
+        },
+        {
+          key: '5',
+          label: <span style={{ fontSize: '24px', color: '#52c41a', fontWeight: 'bold' }}>✅ Đánh giá</span>,
+          children: (
+            <div style={{ marginTop: '30px' }}>
+              <Title level={2} className="section-title" style={{ textAlign: 'center', fontSize: '42px !important' }}>Tổng kết & Đánh giá nhanh</Title>
+              <div className="question-box">
+                "Đi đường gặp đèn đỏ, các em dừng xe lại. Đây có phải là cảm ứng không? <br /><br />
+                Kích thích ở đây là gì và phản ứng là gì?"
+              </div>
+            </div>
+          )
+        }
+      ];
+
+      return (
+        <div className="container">
+          <div className="main-header">BÀI 32: CẢM ỨNG Ở SINH VẬT</div>
+          <div className="sub-header">1. Khái quát về cảm ứng ở sinh vật</div>
+
+          <Card bordered={false} style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+            <Tabs defaultActiveKey="1" items={tabItems} size="large" tabBarGutter={20} />
+          </Card>
+        </div>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+
+</html>
